@@ -1,0 +1,11 @@
+.env
+db/
+*.pdf
+__pycache__/
+venv/
+.venv/
+.idea/
+.vscode/
+.streamlit/secrets.toml
+eval/generated.json
+eval/manual.json

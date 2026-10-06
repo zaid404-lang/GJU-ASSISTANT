@@ -1,0 +1,43 @@
+services:
+  rag-api:
+    build: .
+    container_name: rag-api
+    environment:
+      - API_KEY=${API_KEY}
+      - BASE_URL=${BASE_URL:-https://api.bluesminds.com/v1}
+      - LLM_MODEL=${LLM_MODEL:-openai/gpt-oss-20b}
+      - RAG_API_KEY=${RAG_API_KEY}
+      - VECTOR_STORE=${VECTOR_STORE:-chroma}
+      - PINECONE_API_KEY=${PINECONE_API_KEY:-}
+      - PINECONE_INDEX=${PINECONE_INDEX:-gju-lectures}
+      - SUBJECT_MODELS=${SUBJECT_MODELS:-false}
+    volumes:
+      - ./db:/app/db
+      - ./pdfs:/app/pdfs
+      - ./eval:/app/eval
+      - hf-cache:/root/.cache/huggingface
+    restart: unless-stopped
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    ports:
+      - "3000:8080"
+    environment:
+      - OPENAI_API_BASE_URL=http://rag-api:8000/v1
+      - OPENAI_API_KEY=${RAG_API_KEY}
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+      - ENABLE_OLLAMA_API=false
+      - ENABLE_TITLE_GENERATION=false
+      - ENABLE_TAGS_GENERATION=false
+      - ENABLE_FOLLOW_UP_GENERATION=false
+      - ENABLE_AUTOCOMPLETE_GENERATION=false
+    volumes:
+      - open-webui:/app/backend/data
+    depends_on:
+      - rag-api
+    restart: unless-stopped
+
+volumes:
+  open-webui:
+  hf-cache:
